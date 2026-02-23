@@ -120,6 +120,7 @@ class KaraokeUI(QWidget):
         path = os.path.join("songs", filename)
         if os.path.exists(path):
             processed = process_audio(path, self.pitch, self.tempo)
+            self.player.stop()  # Para a música anterior antes de tocar a nova
             self.player.play(processed)
 
     def play_next(self):
