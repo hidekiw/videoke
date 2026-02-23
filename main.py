@@ -107,7 +107,9 @@ class KaraokeUI(QWidget):
             self.queue.add(num)
             self.queue_list.addItem(num)
             self.display.clear()
-            # Não tocar imediatamente ao adicionar
+            # Se não houver música tocando, tocar a primeira
+            if not self.player.player.is_playing():
+                self.play_next()
         else:
             self.display.setText(self.display.text() + t)
 
