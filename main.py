@@ -32,6 +32,7 @@ class KaraokeUI(QWidget):
         side.addWidget(self.display)
 
         self.queue_list = QListWidget()
+        self.queue_list.itemDoubleClicked.connect(self.play_selected)
         side.addWidget(self.queue_list)
 
         # CONTROLS
@@ -100,16 +101,24 @@ class KaraokeUI(QWidget):
     # -------- QUEUE --------
 
     def handle(self):
-        t=self.sender().text()
-        if t=="ADD":
-            num=self.display.text()
+        t = self.sender().text()
+        if t == "ADD":
+            num = self.display.text()
             self.queue.add(num)
             self.queue_list.addItem(num)
             self.display.clear()
-            if len(self.queue.queue)==1:
-                self.play_next()
+            # Não tocar imediatamente ao adicionar
         else:
-            self.display.setText(self.display.text()+t)
+            self.display.setText(self.display.text() + t)
+
+    def play_selected(self, item):
+        # Toca a música selecionada na lista ao dar duplo clique
+        song = item.text()
+        filename = f"{int(song):05d}.mp4" if song.isdigit() else song
+        path = os.path.join("songs", filename)
+        if os.path.exists(path):
+            processed = process_audio(path, self.pitch, self.tempo)
+            self.player.play(processed)
 
     def play_next(self):
         song = self.queue.next()
