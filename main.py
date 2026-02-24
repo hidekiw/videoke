@@ -1,6 +1,7 @@
 import sys, os
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 from player import VideoPlayer
 from queue_manager import QueueManager
 from audio_engine import process_audio
@@ -16,8 +17,12 @@ class KaraokeUI(QWidget):
         self.volume = 100  # Volume inicial (0-100)
 
         self.queue = QueueManager()
+        self.control_buttons = []
+        self.numpad_buttons = []
 
         layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(5)
 
         # VIDEO
         self.video_frame = QFrame()
@@ -25,18 +30,22 @@ class KaraokeUI(QWidget):
         layout.addWidget(self.video_frame, 3)
 
         # SIDE
-        side = QVBoxLayout()
+        side_widget = QWidget()
+        side = QVBoxLayout(side_widget)
+        side.setContentsMargins(5, 5, 5, 5)
+        side.setSpacing(5)
 
         self.display = QLineEdit()
-        self.display.setStyleSheet("font-size:40px;")
+        self.display.setMinimumHeight(60)
         side.addWidget(self.display)
 
         self.queue_list = QListWidget()
         self.queue_list.itemDoubleClicked.connect(self.play_selected)
-        side.addWidget(self.queue_list)
+        side.addWidget(self.queue_list, 2)
 
         # CONTROLS
         ctrl = QGridLayout()
+        ctrl.setSpacing(3)
 
         buttons = [
             ("TOM +", self.pitch_up),
@@ -52,17 +61,20 @@ class KaraokeUI(QWidget):
         r=0;c=0
         for text,func in buttons:
             btn = QPushButton(text)
-            btn.setStyleSheet("font-size:20px;height:60px;background:#ff66cc;")
+            btn.setMinimumHeight(50)
+            btn.setStyleSheet("background:#ff66cc; color:white; font-weight:bold; border-radius:5px;")
             btn.clicked.connect(func)
+            self.control_buttons.append(btn)
             ctrl.addWidget(btn,r,c)
             c+=1
             if c>1:
                 c=0;r+=1
 
-        side.addLayout(ctrl)
+        side.addLayout(ctrl, 1)
 
         # NUMPAD
         grid = QGridLayout()
+        grid.setSpacing(3)
         nums = ['1','2','3','4','5','6','7','8','9','0','ADD']
 
         pos=0
@@ -70,15 +82,59 @@ class KaraokeUI(QWidget):
             for c in range(3):
                 if pos>=len(nums): break
                 b = QPushButton(nums[pos])
-                b.setStyleSheet("font-size:30px;height:80px;background:#33ccff;")
+                b.setMinimumHeight(60)
+                b.setStyleSheet("background:#33ccff; color:black; font-weight:bold; border-radius:5px;")
                 b.clicked.connect(self.handle)
+                self.numpad_buttons.append(b)
                 grid.addWidget(b,r,c)
                 pos+=1
 
-        side.addLayout(grid)
-        layout.addLayout(side,1)
+        side.addLayout(grid, 1)
+        layout.addWidget(side_widget, 1)
 
         self.player = VideoPlayer(int(self.video_frame.winId()), self.song_finished)
+        self.update_fonts()
+
+    def resizeEvent(self, event):
+        """Atualiza os tamanhos das fontes quando a janela é redimensionada"""
+        super().resizeEvent(event)
+        self.update_fonts()
+
+    def update_fonts(self):
+        """Ajusta tamanhos de fonte baseado no tamanho da janela"""
+        # Verifica se os widgets já foram criados
+        if not hasattr(self, 'display') or not hasattr(self, 'control_buttons'):
+            return
+        
+        width = self.width()
+        font_size_display = max(16, width // 50)
+        font_size_controls = max(14, width // 70)
+        font_size_numpad = max(16, width // 60)
+
+        # Display
+        font = QFont()
+        font.setPointSize(font_size_display)
+        font.setBold(True)
+        self.display.setFont(font)
+
+        # Control buttons
+        font = QFont()
+        font.setPointSize(font_size_controls)
+        font.setBold(True)
+        for btn in self.control_buttons:
+            btn.setFont(font)
+
+        # Numpad buttons
+        font = QFont()
+        font.setPointSize(font_size_numpad)
+        font.setBold(True)
+        for btn in self.numpad_buttons:
+            btn.setFont(font)
+
+        # Queue list
+        font = QFont()
+        font.setPointSize(max(12, width // 80))
+        self.queue_list.setFont(font)
 
     # -------- VOLUME CONTROLS --------
     def volume_up(self):

@@ -12,6 +12,7 @@ class VideoPlayer:
     def play(self, path):
         media = self.instance.media_new(path)
         self.player.set_media(media)
+        self.player.audio_set_mute(True)
         self.player.play()
 
     def set_volume(self, volume):
