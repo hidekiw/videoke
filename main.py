@@ -37,10 +37,12 @@ class KaraokeUI(QWidget):
 
         self.display = QLineEdit()
         self.display.setMinimumHeight(60)
-        side.addWidget(self.display)
+        self.display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        side.addWidget(self.display, 0)
 
         self.queue_list = QListWidget()
         self.queue_list.itemDoubleClicked.connect(self.play_selected)
+        self.queue_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         side.addWidget(self.queue_list, 2)
 
         # CONTROLS
@@ -61,7 +63,8 @@ class KaraokeUI(QWidget):
         r=0;c=0
         for text,func in buttons:
             btn = QPushButton(text)
-            btn.setMinimumHeight(50)
+            btn.setMinimumHeight(max(40, self.height()//18))
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
             btn.setStyleSheet("background:#ff66cc; color:white; font-weight:bold; border-radius:5px;")
             btn.clicked.connect(func)
             self.control_buttons.append(btn)
@@ -82,7 +85,8 @@ class KaraokeUI(QWidget):
             for c in range(3):
                 if pos>=len(nums): break
                 b = QPushButton(nums[pos])
-                b.setMinimumHeight(60)
+                b.setMinimumHeight(max(50, self.height()//13))
+                b.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
                 b.setStyleSheet("background:#33ccff; color:black; font-weight:bold; border-radius:5px;")
                 b.clicked.connect(self.handle)
                 self.numpad_buttons.append(b)
@@ -96,8 +100,17 @@ class KaraokeUI(QWidget):
         self.update_fonts()
 
     def resizeEvent(self, event):
-        """Atualiza os tamanhos das fontes quando a janela é redimensionada"""
+        """Atualiza tamanhos dos widgets e fontes quando a janela é redimensionada"""
         super().resizeEvent(event)
+        # Só ajusta se os atributos já existem
+        min_h_ctrl = max(40, self.height()//18)
+        min_h_num = max(50, self.height()//13)
+        if hasattr(self, 'control_buttons'):
+            for btn in self.control_buttons:
+                btn.setMinimumHeight(min_h_ctrl)
+        if hasattr(self, 'numpad_buttons'):
+            for btn in self.numpad_buttons:
+                btn.setMinimumHeight(min_h_num)
         self.update_fonts()
 
     def update_fonts(self):
